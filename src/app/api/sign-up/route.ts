@@ -8,7 +8,7 @@ export const POST = async (request: Request) => {
   await dbConnect();
 
   try {
-    const { username, email, passwrd } = await request.json();
+    const { username, email, password } = await request.json();
 
     const existingUserVerifiedByUsername = await UserModel.findOne({
       username,
@@ -38,23 +38,23 @@ export const POST = async (request: Request) => {
           { status: 400 }
         );
       } else {
-        const hashedPassword = await bcrypt.hash(passwrd, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
         existingUserByEmail.password = hashedPassword;
         existingUserByEmail.verifyCode = verifyCode;
         existingUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
         await existingUserByEmail.save();
       }
     } else {
-      const hashedPassword = await bcrypt.hash(passwrd, 10);
-      const expirydate = new Date();
-      expirydate.setHours(expirydate.getHours() + 1);
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + 1);
 
       const newUser = new UserModel({
         username,
         email,
         password: hashedPassword,
         verifyCode,
-        verifyCodeExpiry: expirydate,
+        verifyCodeExpiry: expiryDate,
         isVerified: false,
         isAcceptingMessage: true,
         messages: [],
