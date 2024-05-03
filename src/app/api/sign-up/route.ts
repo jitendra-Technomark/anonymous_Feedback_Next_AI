@@ -10,12 +10,12 @@ export const POST = async (request: Request) => {
   try {
     const { username, email, passwrd } = await request.json();
 
-    const existingUsrVerifiedByUsername = await UserModel.findOne({
+    const existingUserVerifiedByUsername = await UserModel.findOne({
       username,
       isVerified: true,
     });
 
-    if (existingUsrVerifiedByUsername) {
+    if (existingUserVerifiedByUsername) {
       return Response.json(
         {
           success: false,
@@ -42,7 +42,7 @@ export const POST = async (request: Request) => {
         existingUserByEmail.password = hashedPassword;
         existingUserByEmail.verifyCode = verifyCode;
         existingUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
-        await existingUserByEmail.save()
+        await existingUserByEmail.save();
       }
     } else {
       const hashedPassword = await bcrypt.hash(passwrd, 10);
@@ -63,7 +63,7 @@ export const POST = async (request: Request) => {
       await newUser.save();
     }
 
-    // send verification image
+    // send verification email
     const emailResponse = await sendVerificationEmail(
       email,
       username,
@@ -80,7 +80,7 @@ export const POST = async (request: Request) => {
       );
     }
 
-    // if email send successfully
+    // if . send successfully
     return Response.json(
       {
         success: true,
