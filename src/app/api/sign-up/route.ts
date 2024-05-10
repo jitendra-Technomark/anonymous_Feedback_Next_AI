@@ -33,7 +33,7 @@ export const POST = async (request: Request) => {
         return Response.json(
           {
             success: false,
-            message: "Useralready exist with this email",
+            message: "User already exist with this email",
           },
           { status: 400 }
         );
