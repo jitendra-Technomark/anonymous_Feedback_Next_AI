@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 export { default } from "next-auth/middleware";
 import { getToken } from "next-auth/jwt";
 
+export const config = {
+  // Configuring matchers for middleware
+  matchers: ["/sign-in", "sign-up", "/", "/dashboard/:path*", "/verify/:path*"],
+};
+
 export async function middleware(request: NextRequest) {
   // Getting the token from the request
   const token = await getToken({ req: request });
@@ -27,8 +32,3 @@ export async function middleware(request: NextRequest) {
 
   return NextResponse.next();
 }
-
-export const config = {
-  // Configuring matchers for middleware
-  matchers: ["/sign-in", "sign-up", "/", "/dashboard/:path*", "/verify/:path*"],
-};
