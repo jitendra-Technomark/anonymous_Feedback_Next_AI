@@ -1,23 +1,20 @@
-import { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import dbConnect from "@/lib/dbConnect";
-import UserModel from "@/model/User";
+import { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
+import dbConnect from '@/lib/dbConnect';
+import UserModel from '@/model/User';
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      id: "credentials",
-      name: "credentials",
+      id: 'credentials',
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
       },
-
-      // Authorization logic for the Credentials provider
       async authorize(credentials: any): Promise<any> {
         await dbConnect();
-
         try {
           const user = await UserModel.findOne({
             $or: [
@@ -25,25 +22,20 @@ export const authOptions: NextAuthOptions = {
               { username: credentials.identifier },
             ],
           });
-
           if (!user) {
-            throw new Error("No user found with this email");
+            throw new Error('No user found with this email');
           }
-
           if (!user.isVerified) {
-            throw new Error("Please verify your account before login");
+            throw new Error('Please verify your account before logging in');
           }
-
-          // Comparing the provided password with the hashed password stored in the database
           const isPasswordCorrect = await bcrypt.compare(
             credentials.password,
             user.password
           );
-
           if (isPasswordCorrect) {
             return user;
           } else {
-            throw new Error("Incorrect Password");
+            throw new Error('Incorrect password');
           }
         } catch (err: any) {
           throw new Error(err);
@@ -51,45 +43,31 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-
   callbacks: {
-    // Callback to manipulate the JWT token
     async jwt({ token, user }) {
       if (user) {
-        // Adding user data to the token
-        token._id = user._id?.toString();
+        token._id = user._id?.toString(); // Convert ObjectId to string
         token.isVerified = user.isVerified;
         token.isAcceptingMessages = user.isAcceptingMessages;
         token.username = user.username;
       }
-
       return token;
     },
-
-    // Callback to manipulate the session
     async session({ session, token }) {
       if (token) {
-        // Adding user data from the token to the session
         session.user._id = token._id;
         session.user.isVerified = token.isVerified;
         session.user.isAcceptingMessages = token.isAcceptingMessages;
         session.user.username = token.username;
       }
-
       return session;
     },
   },
-
-  // Overwriting default NextAuth pages
-  pages: {
-    signIn: "/sign-in",
-  },
-
-  // Configuration for session handling
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
   },
-
-  // Secret used for signing cookies and tokens
   secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: '/sign-in',
+  },
 };

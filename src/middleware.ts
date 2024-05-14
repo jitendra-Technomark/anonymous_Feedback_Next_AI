@@ -1,33 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-export { default } from "next-auth/middleware";
-import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+export { default } from 'next-auth/middleware';
 
 export const config = {
-  // Configuring matchers for middleware
-  matchers: ["/sign-in", "sign-up", "/", "/dashboard/:path*", "/verify/:path*"],
+  matcher: ['/dashboard/:path*', '/sign-in', '/sign-up', '/', '/verify/:path*'],
 };
 
 export async function middleware(request: NextRequest) {
-  // Getting the token from the request
   const token = await getToken({ req: request });
-  // Getting the URL from the request
   const url = request.nextUrl;
 
-  // Checking if the token exists and if the URL is for authentication or home pages
+  // Redirect to dashboard if the user is already authenticated
+  // and trying to access sign-in, sign-up, or home page
   if (
     token &&
-    (url.pathname.startsWith("/sign-in") ||
-      url.pathname.startsWith("/sign-up") ||
-      url.pathname.startsWith("/verify") ||
-      url.pathname.startsWith("/"))
+    (url.pathname.startsWith('/sign-in') ||
+      url.pathname.startsWith('/sign-up') ||
+      url.pathname.startsWith('/verify') ||
+      url.pathname === '/')
   ) {
-    // Redirecting to the dashboard if authenticated
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  if (!token && url.pathname.startsWith("/dashboard")) {
-    // Redirecting to the sign-in page if not authenticated
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+  if (!token && url.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 
   return NextResponse.next();
